@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useCategories } from '../hooks/useCategories';
+import { useContactInfo } from '../hooks/useContactInfo';
 
 const announcements = [
   { text: '🎉 Free diagnostic on all repairs — book now!', link: '/repair-services' },
@@ -215,6 +216,15 @@ export default function Header() {
   const navigate = useNavigate();
   const location = useLocation();
   const { data: catData } = useCategories('product');
+  const { data: contactData } = useContactInfo();
+  const contactInfo = contactData?.contactInfo;
+  const displayPhone = contactInfo?.phone ? (() => {
+    const d = contactInfo.phone.replace(/\D/g, '');
+    if (d.length === 13) return `+${d.slice(0,3)} ${d.slice(3,7)}-${d.slice(7)}`;
+    if (d.length === 11) return `+${d[0]} ${d.slice(1,5)}-${d.slice(5)}`;
+    return contactInfo.phone;
+  })() : '+880 1700-000000';
+  const phoneHref = contactInfo?.phone ? `tel:${contactInfo.phone.replace(/\s/g, '')}` : 'tel:+8801700000000';
 
   useEffect(() => {
     document.documentElement.classList.toggle('dark', dark);
@@ -355,11 +365,11 @@ export default function Header() {
                 </svg>
               </button>
 
-              <a href="tel:+8801700000000" className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-text-secondary hover:text-accent hover:bg-accent/5 transition-all">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <a href={phoneHref} className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-text-secondary hover:text-accent hover:bg-accent/5 transition-all">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                <span className="hidden xl:inline">+880 1700-000000</span>
+                <span className="hidden xl:inline">{displayPhone}</span>
               </a>
 
               <Link to="/cart" className="relative p-2 sm:p-2.5 rounded-xl hover:bg-accent/5 text-text-secondary hover:text-accent transition-all" aria-label="Cart">
@@ -488,9 +498,9 @@ export default function Header() {
                 </div>
                 <div className="border-t border-border mx-4 my-2" />
                 <div className="px-4 py-2">
-                  <a href="tel:+8801700000000" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-accent/5 transition-colors">
-                    <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                    +880 1700-000000
+                  <a href={phoneHref} className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm hover:bg-accent/5 transition-colors">
+                    <svg className="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                    {displayPhone}
                   </a>
                 </div>
               </div>

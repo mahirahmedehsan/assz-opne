@@ -2,10 +2,13 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAboutInfo } from '../hooks/useAboutInfo';
 import api from '../services/api';
+import Loader from '../components/Loader';
 
 export default function About() {
-  const { data } = useAboutInfo();
+  const { data, isLoading } = useAboutInfo();
   const info = data?.aboutInfo;
+
+  if (isLoading) return <Loader />;
 
   return (
     <div>
