@@ -28,21 +28,29 @@ const navItems = [
   { path: '/admin/repair-page', label: 'Repair Page', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
 ];
 
-function AdminSidebar() {
+function AdminSidebar({ isOpen, onClose }) {
   const location = useLocation();
-  return (
-    <aside className="w-64 bg-surface border-r border-border min-h-screen p-4 flex-shrink-0 hidden lg:flex flex-col">
+  const sidebar = (
+    <>
       <div className="mb-6 px-3">
-        <h2 className="font-display text-lg font-bold text-text-primary">Admin Panel</h2>
-        <p className="text-[10px] text-text-secondary font-mono uppercase tracking-wider mt-0.5">ASSZ Dashboard</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display text-lg font-bold text-text-primary">Admin Panel</h2>
+            <p className="text-[10px] text-text-secondary font-mono uppercase tracking-wider mt-0.5">ASSZ Dashboard</p>
+          </div>
+          <button onClick={onClose} className="lg:hidden p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+          </button>
+        </div>
       </div>
-      <nav className="space-y-0.5 flex-1">
+      <nav className="space-y-0.5 flex-1 overflow-y-auto">
         {navItems.map((item) => {
           const active = item.end ? location.pathname === item.path : location.pathname.startsWith(item.path);
           return (
             <Link
               key={item.path}
               to={item.path}
+              onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
                 active
                   ? 'bg-accent text-white shadow-sm'
@@ -63,7 +71,23 @@ function AdminSidebar() {
           Back to Site
         </Link>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      <aside className="w-64 bg-surface border-r border-border min-h-screen p-4 flex-shrink-0 hidden lg:flex flex-col">
+        {sidebar}
+      </aside>
+      {isOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+          <aside className="absolute left-0 top-0 bottom-0 w-72 bg-surface border-r border-border shadow-2xl p-4 flex flex-col overflow-y-auto animate-slide-in">
+            {sidebar}
+          </aside>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -201,7 +225,7 @@ function AdminOverview() {
           </div>
           <div className="divide-y divide-border/50">
             {recentActivity.length > 0 ? recentActivity.map((a) => (
-              <div key={`${a.type}-${a.id}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-bg/40 transition-colors">
+              <div key={`${a.type}-${a.id}`} className="flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-3.5 hover:bg-bg/40 transition-colors">
                 <div className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center ${
                   a.type === 'order' ? 'bg-blue-500/10 text-blue-500' :
                   a.type === 'booking' ? 'bg-violet-500/10 text-violet-500' :
@@ -274,13 +298,13 @@ function ModalForm({ title, children, onClose }) {
   return (
     <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
       <div className="bg-surface rounded-xl max-w-lg w-full max-h-[90vh] overflow-y-auto shadow-xl" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
           <h2 className="font-display text-lg font-bold text-text-primary">{title}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-bg dark:hover:bg-surface/80 text-text-secondary hover:text-text-primary transition-colors">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
         </div>
-        <div className="p-6">{children}</div>
+        <div className="p-4 sm:p-6">{children}</div>
       </div>
     </div>
   );
@@ -358,7 +382,7 @@ function AdminProducts() {
       {showForm && (
         <ModalForm title={editing ? 'Edit Product' : 'New Product'} onClose={() => setShowForm(false)}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Name</label>
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -368,7 +392,7 @@ function AdminProducts() {
                 <input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Category</label>
                 <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50">
@@ -381,7 +405,7 @@ function AdminProducts() {
                 <input value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Price (৳)</label>
                 <input type="number" required value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -427,31 +451,31 @@ function AdminProducts() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Image</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Price</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Stock</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Featured</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Condition</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Image</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Price</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Stock</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Featured</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Condition</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {data?.products?.map((p, i) => (
                 <tr key={p._id} className={`border-t border-border/50 hover:bg-bg/30 transition-colors ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}>
-                  <td className="px-4 py-3">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3">
                     {p.images?.[0] ? (
                       <img src={p.images[0]} alt="" className="w-10 h-10 object-cover dark:ring-1 dark:ring-white/10 dark:bg-surface rounded-lg" />
                     ) : (
                       <div className="w-10 h-10 rounded-lg bg-bg dark:bg-surface dark:ring-1 dark:ring-white/10 flex items-center justify-center"><span className="text-xs text-text-secondary">—</span></div>
                     )}
                   </td>
-                  <td className="px-4 py-3 font-medium text-text-primary">{p.name}</td>
-                  <td className="px-4 py-3 text-text-secondary text-xs hidden md:table-cell">{p.category?.name || '—'}</td>
-                  <td className="px-4 py-3 text-right font-mono">৳{p.price.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-right"><span className={`${p.stock > 0 ? 'text-mint-confirm' : 'text-red-500'} font-mono text-xs`}>{p.stock}</span></td>
-                  <td className="px-4 py-3 text-center hidden md:table-cell">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-text-primary">{p.name}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-text-secondary text-xs hidden md:table-cell">{p.category?.name || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-mono">৳{p.price.toLocaleString()}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right"><span className={`${p.stock > 0 ? 'text-mint-confirm' : 'text-red-500'} font-mono text-xs`}>{p.stock}</span></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center hidden md:table-cell">
                     <label className="inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -462,8 +486,8 @@ function AdminProducts() {
                       <div className="relative w-9 h-5 bg-text-secondary/30 peer-checked:bg-repair-amber rounded-full after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                     </label>
                   </td>
-                  <td className="px-4 py-3 text-center hidden md:table-cell"><span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${p.condition === 'new' ? 'bg-mint-confirm/10 text-mint-confirm' : p.condition === 'used' ? 'bg-repair-amber/10 text-repair-amber' : 'bg-accent/10 text-accent'}`}>{p.condition}</span></td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center hidden md:table-cell"><span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${p.condition === 'new' ? 'bg-mint-confirm/10 text-mint-confirm' : p.condition === 'used' ? 'bg-repair-amber/10 text-repair-amber' : 'bg-accent/10 text-accent'}`}>{p.condition}</span></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                     <button onClick={() => openEdit(p)} className="text-accent text-xs font-medium hover:underline mr-3">Edit</button>
                     <button onClick={async () => { if (await confirm('Delete this product?')) deleteMutation.mutate(p._id); }} className="text-red-500 text-xs font-medium hover:underline">Delete</button>
                   </td>
@@ -524,7 +548,7 @@ function AdminCategories() {
       {showForm && (
         <ModalForm title={editing ? 'Edit Category' : 'New Category'} onClose={() => setShowForm(false)}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Name</label>
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -534,7 +558,7 @@ function AdminCategories() {
                 <input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Type</label>
                 <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50">
@@ -560,19 +584,19 @@ function AdminCategories() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Type</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Icon</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Type</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Icon</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {data?.categories?.map((c, i) => (
                 <tr key={c._id} className={`border-t border-border/50 hover:bg-bg/30 transition-colors ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}>
-                  <td className="px-4 py-3 font-medium text-text-primary">{c.name}</td>
-                  <td className="px-4 py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${c.type === 'product' ? 'bg-accent/10 text-accent' : 'bg-repair-amber/10 text-repair-amber'}`}>{c.type}</span></td>
-                  <td className="px-4 py-3 text-lg">{c.icon || '—'}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-text-primary">{c.name}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3"><span className={`text-xs font-medium px-2 py-0.5 rounded-full capitalize ${c.type === 'product' ? 'bg-accent/10 text-accent' : 'bg-repair-amber/10 text-repair-amber'}`}>{c.type}</span></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-lg">{c.icon || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                     <button onClick={() => { setEditing(c._id); setForm({ name: c.name, slug: c.slug, type: c.type, icon: c.icon || '' }); setShowForm(true); }} className="text-accent text-xs font-medium hover:underline mr-3">Edit</button>
                     <button onClick={async () => { if (await confirm('Delete this category?')) deleteMutation.mutate(c._id); }} className="text-red-500 text-xs font-medium hover:underline">Delete</button>
                   </td>
@@ -608,7 +632,7 @@ function AdminOrders() {
         </button>
 
         <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden max-w-5xl">
-          <div className="border-b border-border px-6 py-5">
+          <div className="border-b border-border px-4 sm:px-6 py-4 sm:py-5">
             <div className="flex items-start justify-between">
               <div>
                 <h1 className="font-display text-xl font-bold text-text-primary">{order.orderNumber}</h1>
@@ -621,7 +645,7 @@ function AdminOrders() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-0">
-            <div className="md:col-span-2 p-6 border-b md:border-b-0 md:border-r border-border">
+            <div className="md:col-span-2 p-4 sm:p-6 border-b md:border-b-0 md:border-r border-border">
               <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-4">Items Ordered</h2>
               <div className="space-y-4">
                 {order.items?.map((item, idx) => (
@@ -647,7 +671,7 @@ function AdminOrders() {
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               <div>
                 <h2 className="text-xs font-semibold text-text-secondary uppercase tracking-wider mb-3">Customer</h2>
                 <div className="space-y-1.5">
@@ -737,15 +761,15 @@ function AdminOrders() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Order #</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Customer</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden lg:table-cell">Email</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Items</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Total</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Payment</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Status</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Update</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Order #</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Customer</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden lg:table-cell">Email</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Items</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Total</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Payment</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Status</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Update</th>
               </tr>
             </thead>
             <tbody>
@@ -755,15 +779,15 @@ function AdminOrders() {
                   onClick={() => setSelectedOrder(o._id)}
                   className={`border-t border-border/50 hover:bg-bg/30 transition-colors cursor-pointer ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">{o.orderNumber}</td>
-                  <td className="px-4 py-3 font-medium text-text-primary">{o.shippingAddress?.name || 'Guest'}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary hidden lg:table-cell">{o.user?.email || '—'}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell max-w-[180px] truncate">{o.items?.map((it) => it.name).join(', ') || '—'}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell">{new Date(o.createdAt).toLocaleDateString('en-BD', { day: 'numeric', month: 'short' })}</td>
-                  <td className="px-4 py-3 text-right font-mono">৳{o.total.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-center hidden md:table-cell"><span className="text-xs font-medium uppercase">{o.paymentMethod}</span></td>
-                  <td className="px-4 py-3 text-center"><StatusStamp status={o.orderStatus} /></td>
-                  <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-mono text-xs text-text-secondary">{o.orderNumber}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-text-primary">{o.shippingAddress?.name || 'Guest'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs text-text-secondary hidden lg:table-cell">{o.user?.email || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs text-text-secondary hidden md:table-cell max-w-[180px] truncate">{o.items?.map((it) => it.name).join(', ') || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs text-text-secondary hidden md:table-cell">{new Date(o.createdAt).toLocaleDateString('en-BD', { day: 'numeric', month: 'short' })}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-mono">৳{o.total.toLocaleString()}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center hidden md:table-cell"><span className="text-xs font-medium uppercase">{o.paymentMethod}</span></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center"><StatusStamp status={o.orderStatus} /></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center" onClick={(e) => e.stopPropagation()}>
                     <select
                       value={o.orderStatus}
                       onChange={(e) => updateMutation.mutate({ id: o._id, data: { orderStatus: e.target.value } })}
@@ -812,26 +836,26 @@ function AdminRepairBookings() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Ticket</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Customer</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Device</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Status</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Update</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Ticket</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Customer</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Device</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Date</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Status</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Update</th>
               </tr>
             </thead>
             <tbody>
               {data?.bookings?.map((b, i) => (
                 <tr key={b._id} className={`border-t border-border/50 hover:bg-bg/30 transition-colors ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}>
-                  <td className="px-4 py-3 font-mono text-xs text-text-secondary">#{b.ticketNumber}</td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-mono text-xs text-text-secondary">#{b.ticketNumber}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3">
                     <p className="font-medium text-text-primary">{b.customer?.name}</p>
                     <p className="text-xs text-text-secondary">{b.customer?.phone}</p>
                   </td>
-                  <td className="px-4 py-3 text-xs hidden md:table-cell">{b.deviceType} — {b.deviceModel}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell">{new Date(b.preferredDate).toLocaleDateString('en-BD')}</td>
-                  <td className="px-4 py-3 text-center"><StatusStamp status={b.status} /></td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs hidden md:table-cell">{b.deviceType} — {b.deviceModel}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs text-text-secondary hidden md:table-cell">{new Date(b.preferredDate).toLocaleDateString('en-BD')}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center"><StatusStamp status={b.status} /></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
                     <select
                       value={b.status}
                       onChange={(e) => updateMutation.mutate({ id: b._id, data: { status: e.target.value } })}
@@ -914,7 +938,7 @@ function AdminCustomers() {
               <label className="block text-xs font-medium text-text-primary mb-1.5">Password *</label>
               <input type="password" required minLength={6} value={createForm.password} onChange={(e) => setCreateForm({ ...createForm, password: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 bg-surface text-text-primary" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Phone</label>
                 <input value={createForm.phone} onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50 bg-surface text-text-primary" />
@@ -941,20 +965,20 @@ function AdminCustomers() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Email</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Phone</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Role</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Email</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Phone</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Role</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {data?.users?.map((u, i) => (
                 <tr key={u._id} className={`border-t border-border/50 hover:bg-bg/30 transition-colors ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}>
-                  <td className="px-4 py-3 font-medium text-text-primary">{u.name || '—'}</td>
-                  <td className="px-4 py-3 text-text-secondary text-xs">{u.email}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary hidden md:table-cell">{u.phone || '—'}</td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-text-primary">{u.name || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-text-secondary text-xs">{u.email}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs text-text-secondary hidden md:table-cell">{u.phone || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
                     <button
                       onClick={() => updateRoleMutation.mutate({ id: u._id, role: u.role === 'admin' ? 'customer' : 'admin' })}
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full border-0 cursor-pointer transition-all hover:scale-105 ${u.role === 'admin' ? 'bg-accent/10 text-accent' : 'bg-text-secondary/10 text-text-secondary'}`}
@@ -963,7 +987,7 @@ function AdminCustomers() {
                       {u.role}
                     </button>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                     <div className="flex items-center justify-end gap-2">
                       {confirmDelete === u._id ? (
                         <>
@@ -1018,20 +1042,20 @@ function AdminReviews() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">User</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Rating</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Comment</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Approved</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">User</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Rating</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Comment</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Approved</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {data?.reviews?.map((r, i) => (
                 <tr key={r._id} className={`border-t border-border/50 hover:bg-bg/30 transition-colors ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}>
-                  <td className="px-4 py-3 text-xs font-medium text-text-primary">{r.user?.name || '—'}</td>
-                  <td className="px-4 py-3 text-center text-repair-amber text-sm">{'★'.repeat(r.rating)}</td>
-                  <td className="px-4 py-3 text-xs text-text-secondary max-w-xs truncate">{r.comment || '—'}</td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs font-medium text-text-primary">{r.user?.name || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-repair-amber text-sm">{'★'.repeat(r.rating)}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs text-text-secondary max-w-xs truncate">{r.comment || '—'}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
                     <label className="inline-flex items-center cursor-pointer">
                       <input
                         type="checkbox"
@@ -1042,7 +1066,7 @@ function AdminReviews() {
                       <div className="relative w-9 h-5 bg-text-secondary/30 peer-checked:bg-mint-confirm rounded-full after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                     </label>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                     <button onClick={async () => { if (await confirm('Delete this review?')) deleteMutation.mutate(r._id); }} className="text-red-500 text-xs font-medium hover:underline">Delete</button>
                   </td>
                 </tr>
@@ -1132,7 +1156,7 @@ function AdminRepairServices() {
       {showForm && (
         <ModalForm title={editing ? 'Edit Service' : 'New Service'} onClose={() => setShowForm(false)}>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Name</label>
                 <input required value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -1142,7 +1166,7 @@ function AdminRepairServices() {
                 <input required value={form.slug} onChange={(e) => setForm({ ...form, slug: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Device Type</label>
                 <select value={form.deviceType} onChange={(e) => setForm({ ...form, deviceType: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50">
@@ -1160,7 +1184,7 @@ function AdminRepairServices() {
               <label className="block text-xs font-medium text-text-primary mb-1.5">Description</label>
               <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Min Price (৳)</label>
                 <input type="number" required value={form.priceMin} onChange={(e) => setForm({ ...form, priceMin: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -1191,27 +1215,27 @@ function AdminRepairServices() {
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-bg/80">
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Device</th>
-                <th className="text-left px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Price Range</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Turnaround</th>
-                <th className="text-center px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Active</th>
-                <th className="text-right px-4 py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Name</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Device</th>
+                <th className="text-left px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Category</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Price Range</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider hidden md:table-cell">Turnaround</th>
+                <th className="text-center px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Active</th>
+                <th className="text-right px-2 sm:px-4 py-2 sm:py-3 font-semibold text-text-secondary text-xs uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody>
               {data?.services?.map((svc, i) => (
                 <tr key={svc._id} className={`border-t border-border/50 hover:bg-bg/30 transition-colors ${i % 2 === 0 ? 'bg-surface' : 'bg-bg/20'}`}>
-                  <td className="px-4 py-3 font-medium text-text-primary">{svc.name}</td>
-                  <td className="px-4 py-3 text-xs hidden md:table-cell"><span className="bg-accent/5 text-accent px-2 py-0.5 rounded-full text-xs">{svc.deviceType}</span></td>
-                  <td className="px-4 py-3 text-xs capitalize hidden md:table-cell">{svc.category}</td>
-                  <td className="px-4 py-3 text-right font-mono">৳{svc.priceMin.toLocaleString()} – ৳{svc.priceMax.toLocaleString()}</td>
-                  <td className="px-4 py-3 text-center text-xs text-text-secondary hidden md:table-cell">{svc.estTurnaroundMinutes < 60 ? `${svc.estTurnaroundMinutes}m` : `${Math.floor(svc.estTurnaroundMinutes / 60)}h`}</td>
-                  <td className="px-4 py-3 text-center">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 font-medium text-text-primary">{svc.name}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs hidden md:table-cell"><span className="bg-accent/5 text-accent px-2 py-0.5 rounded-full text-xs">{svc.deviceType}</span></td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-xs capitalize hidden md:table-cell">{svc.category}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right font-mono">৳{svc.priceMin.toLocaleString()} – ৳{svc.priceMax.toLocaleString()}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center text-xs text-text-secondary hidden md:table-cell">{svc.estTurnaroundMinutes < 60 ? `${svc.estTurnaroundMinutes}m` : `${Math.floor(svc.estTurnaroundMinutes / 60)}h`}</td>
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-center">
                     <span className={`inline-block w-2 h-2 rounded-full ${svc.isActive ? 'bg-mint-confirm' : 'bg-red-400'}`} />
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 sm:px-4 py-2 sm:py-3 text-right">
                     <button onClick={() => openEdit(svc)} className="text-accent text-xs font-medium hover:underline mr-3">Edit</button>
                     <button onClick={async () => { if (await confirm('Delete this repair service?')) deleteMutation.mutate(svc._id); }} className="text-red-500 text-xs font-medium hover:underline">Delete</button>
                   </td>
@@ -1255,7 +1279,7 @@ function AdminMessages() {
         </button>
 
         <div className="bg-surface rounded-2xl border border-border shadow-sm overflow-hidden max-w-4xl">
-          <div className="border-b border-border px-6 py-5">
+          <div className="border-b border-border px-4 sm:px-6 py-4 sm:py-5">
             <h1 className="font-display text-xl font-bold text-text-primary mb-1">{selected.subject || 'No Subject'}</h1>
             <div className="flex items-center gap-2 text-xs text-text-secondary">
               <span className={`inline-block w-2 h-2 rounded-full ${selected.isRead ? 'bg-text-secondary/30' : 'bg-accent'}`} />
@@ -1265,7 +1289,7 @@ function AdminMessages() {
             </div>
           </div>
 
-          <div className="px-6 py-4 border-b border-border bg-bg/30">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-b border-border bg-bg/30">
             <div className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-sm">
               <span className="text-text-secondary font-medium">From</span>
               <div>
@@ -1285,13 +1309,13 @@ function AdminMessages() {
             </div>
           </div>
 
-          <div className="px-6 py-6">
+          <div className="px-4 sm:px-6 py-4 sm:py-6">
             <div className="prose prose-sm max-w-none text-text-primary leading-relaxed whitespace-pre-wrap">
               {selected.message}
             </div>
           </div>
 
-          <div className="px-6 py-4 border-t border-border bg-bg/30 flex items-center gap-3">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-bg/30 flex flex-wrap items-center gap-2 sm:gap-3">
             <a
               href={`mailto:${selected.email}?subject=Re: ${selected.subject || 'Your message'}`}
               className="btn-primary text-sm"
@@ -1339,7 +1363,7 @@ function AdminMessages() {
               <button
                 key={m._id}
                 onClick={() => openMessage(m)}
-                className={`w-full text-left px-5 py-4 transition-colors hover:bg-bg/50 ${!m.isRead ? 'bg-accent/[0.02]' : ''} ${selectedId === m._id ? 'bg-accent/5' : ''}`}
+                className={`w-full text-left px-3 sm:px-5 py-3 sm:py-4 transition-colors hover:bg-bg/50 ${!m.isRead ? 'bg-accent/[0.02]' : ''} ${selectedId === m._id ? 'bg-accent/5' : ''}`}
               >
                 <div className="flex items-start gap-4">
                   <div className="relative shrink-0 mt-0.5">
@@ -1499,15 +1523,15 @@ function AdminHeroSlides() {
                     {!slide.isActive && <span className="text-white text-xs font-semibold px-2 py-1 bg-black/60 rounded">Inactive</span>}
                   </div>
                 </div>
-                <div className="flex-1 p-5 min-w-0">
-                  <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 p-4 sm:p-5 min-w-0">
+                  <div className="flex items-start justify-between gap-2 sm:gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <span className={`w-2 h-2 rounded-full ${slide.isActive ? 'bg-mint-confirm' : 'bg-text-secondary/30'}`} />
                         <span className="text-xs font-mono text-text-secondary">#{slide.order + 1}</span>
                         {slide.badge && <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-bg text-text-secondary truncate">{slide.badge}</span>}
                       </div>
-                      <h3 className="font-display text-base font-bold text-text-primary truncate">
+                      <h3 className="font-display text-sm sm:text-base font-bold text-text-primary truncate">
                         {slide.titleLine1 || 'Untitled'}
                       </h3>
                       <p className="text-xs text-text-secondary line-clamp-2 mt-0.5">{slide.description || '—'}</p>
@@ -1541,15 +1565,15 @@ function AdminHeroSlides() {
       {showForm && (
         <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-10 pb-10 overflow-y-auto" onClick={() => setShowForm(false)}>
           <div className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-2xl mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
               <h2 className="font-display text-lg font-bold text-text-primary">{editing ? 'Edit Slide' : 'Add Slide'}</h2>
               <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg transition-colors">
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Badge Text</label>
                   <input type="text" value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} placeholder="Free diagnostic • 15 min avg." className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none" />
                 </div>
@@ -1573,7 +1597,7 @@ function AdminHeroSlides() {
                     ))}
                   </select>
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Description</label>
                   <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder="Describe the slide content..." className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none resize-none" />
                 </div>
@@ -1593,7 +1617,7 @@ function AdminHeroSlides() {
                   <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Secondary Button Link</label>
                   <input type="text" value={form.secondaryHref} onChange={(e) => setForm({ ...form, secondaryHref: e.target.value })} placeholder="/shop" className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none" />
                 </div>
-                <div className="col-span-2">
+                <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Image URL</label>
                   <input type="text" value={form.image} onChange={(e) => setForm({ ...form, image: e.target.value })} placeholder="https://images.unsplash.com/photo-..." className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none" />
                   {form.image && (
@@ -1745,7 +1769,7 @@ function AdminRepairPageSettings() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm max-w-2xl">
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {activeTab === 'hero' && (
             <div className="space-y-4">
               <div>
@@ -1794,10 +1818,10 @@ function AdminRepairPageSettings() {
             <div className="space-y-3">
               <p className="text-xs text-text-secondary">Time slots shown in the booking form.</p>
               {form.timeSlots.map((s, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
-                  <input value={s.value} onChange={(e) => updateArrayItem('timeSlots', idx, 'value', e.target.value)} placeholder="morning" className="w-28 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <input value={s.label} onChange={(e) => updateArrayItem('timeSlots', idx, 'label', e.target.value)} placeholder="Morning (10AM–12PM)" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <button type="button" onClick={() => removeArrayItem('timeSlots', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                <div key={idx} className="flex items-center gap-2 sm:gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={s.value} onChange={(e) => updateArrayItem('timeSlots', idx, 'value', e.target.value)} placeholder="morning" className="w-20 sm:w-28 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={s.label} onChange={(e) => updateArrayItem('timeSlots', idx, 'label', e.target.value)} placeholder="Morning (10AM–12PM)" className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('timeSlots', idx)} className="text-red-500 hover:text-red-700 p-1 shrink-0"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
               ))}
               <button type="button" onClick={() => addArrayItem('timeSlots', { value: '', label: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Time Slot</button>
@@ -1814,7 +1838,7 @@ function AdminRepairPageSettings() {
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Description</label>
                 <textarea value={form.offlineDescription} onChange={(e) => updateField('offlineDescription', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-text-primary mb-1.5">Phone Number</label>
                   <input value={form.offlinePhone} onChange={(e) => updateField('offlinePhone', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -1837,7 +1861,7 @@ function AdminRepairPageSettings() {
                 <label className="block text-xs font-medium text-text-primary mb-1.5">Description</label>
                 <textarea value={form.trackDescription} onChange={(e) => updateField('trackDescription', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-text-primary mb-1.5">Button Label</label>
                   <input value={form.trackButtonLabel} onChange={(e) => updateField('trackButtonLabel', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -1995,7 +2019,7 @@ function AdminAboutInfo() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm max-w-2xl">
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
           {activeTab === 'hero' && (
             <div className="space-y-4">
               <div>
@@ -2014,10 +2038,10 @@ function AdminAboutInfo() {
             <div className="space-y-3">
               <p className="text-xs text-text-secondary">Stats shown in the hero stats row.</p>
               {form.stats.map((s, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
-                  <input value={s.value} onChange={(e) => updateArrayItem('stats', idx, 'value', e.target.value)} placeholder="5+" className="w-24 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <input value={s.label} onChange={(e) => updateArrayItem('stats', idx, 'label', e.target.value)} placeholder="Years Experience" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <button type="button" onClick={() => removeArrayItem('stats', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                <div key={idx} className="flex items-center gap-2 sm:gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={s.value} onChange={(e) => updateArrayItem('stats', idx, 'value', e.target.value)} placeholder="5+" className="w-20 sm:w-24 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={s.label} onChange={(e) => updateArrayItem('stats', idx, 'label', e.target.value)} placeholder="Years Experience" className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('stats', idx)} className="text-red-500 hover:text-red-700 p-1 shrink-0"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
               ))}
               <button type="button" onClick={() => addArrayItem('stats', { value: '', label: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Stat</button>
@@ -2040,8 +2064,8 @@ function AdminAboutInfo() {
                   <div key={idx} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-bg/40 mb-2">
                     <div className="flex-1 space-y-2">
                       <div className="flex gap-2">
-                        <input value={v.title} onChange={(e) => updateArrayItem('values', idx, 'title', e.target.value)} placeholder="Title" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                        <input value={v.icon} onChange={(e) => updateArrayItem('values', idx, 'icon', e.target.value)} placeholder="🛡️" className="w-16 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface text-center focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                        <input value={v.title} onChange={(e) => updateArrayItem('values', idx, 'title', e.target.value)} placeholder="Title" className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                        <input value={v.icon} onChange={(e) => updateArrayItem('values', idx, 'icon', e.target.value)} placeholder="🛡️" className="w-14 sm:w-16 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface text-center focus:outline-none focus:ring-2 focus:ring-accent/50" />
                       </div>
                       <textarea value={v.desc} onChange={(e) => updateArrayItem('values', idx, 'desc', e.target.value)} placeholder="Description" rows={2} className="w-full px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
                     </div>
@@ -2057,10 +2081,10 @@ function AdminAboutInfo() {
             <div className="space-y-3">
               <p className="text-xs text-text-secondary">Company journey timeline entries.</p>
               {form.timeline.map((t, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                <div key={idx} className="flex items-center gap-2 sm:gap-3 p-3 rounded-lg border border-border bg-bg/40">
                   <input value={t.year} onChange={(e) => updateArrayItem('timeline', idx, 'year', e.target.value)} placeholder="2019" className="w-20 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <input value={t.event} onChange={(e) => updateArrayItem('timeline', idx, 'event', e.target.value)} placeholder="Event description" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <button type="button" onClick={() => removeArrayItem('timeline', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                  <input value={t.event} onChange={(e) => updateArrayItem('timeline', idx, 'event', e.target.value)} placeholder="Event description" className="flex-1 min-w-0 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('timeline', idx)} className="text-red-500 hover:text-red-700 p-1 shrink-0"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
               ))}
               <button type="button" onClick={() => addArrayItem('timeline', { year: '', event: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Timeline Entry</button>
@@ -2071,11 +2095,11 @@ function AdminAboutInfo() {
             <div className="space-y-3">
               <p className="text-xs text-text-secondary">Team member profiles.</p>
               {form.team.map((t, idx) => (
-                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
-                  <input value={t.name} onChange={(e) => updateArrayItem('team', idx, 'name', e.target.value)} placeholder="Name" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <input value={t.role} onChange={(e) => updateArrayItem('team', idx, 'role', e.target.value)} placeholder="Role" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <input value={t.initials} onChange={(e) => updateArrayItem('team', idx, 'initials', e.target.value)} placeholder="ME" className="w-16 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface text-center focus:outline-none focus:ring-2 focus:ring-accent/50" />
-                  <button type="button" onClick={() => removeArrayItem('team', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                  <div key={idx} className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                    <input value={t.name} onChange={(e) => updateArrayItem('team', idx, 'name', e.target.value)} placeholder="Name" className="flex-1 min-w-[120px] px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                    <input value={t.role} onChange={(e) => updateArrayItem('team', idx, 'role', e.target.value)} placeholder="Role" className="flex-1 min-w-[120px] px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                    <input value={t.initials} onChange={(e) => updateArrayItem('team', idx, 'initials', e.target.value)} placeholder="ME" className="w-16 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface text-center focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                    <button type="button" onClick={() => removeArrayItem('team', idx)} className="text-red-500 hover:text-red-700 p-1 shrink-0"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
                 </div>
               ))}
               <button type="button" onClick={() => addArrayItem('team', { name: '', role: '', initials: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Team Member</button>
@@ -2092,7 +2116,7 @@ function AdminAboutInfo() {
                 <label className="block text-xs font-medium text-text-primary mb-1.5">CTA Description</label>
                 <textarea value={form.ctaDescription} onChange={(e) => updateField('ctaDescription', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-medium text-text-primary mb-1.5">Primary Button Label</label>
                   <input value={form.ctaPrimaryLabel} onChange={(e) => updateField('ctaPrimaryLabel', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
@@ -2187,9 +2211,9 @@ function AdminContactInfo() {
       </div>
 
       <div className="bg-surface rounded-xl border border-border shadow-sm max-w-2xl">
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="col-span-2">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="sm:col-span-2">
               <label className="block text-xs font-medium text-text-primary mb-1.5">Address</label>
               <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
             </div>
@@ -2216,15 +2240,15 @@ function AdminContactInfo() {
             <p className="text-xs text-text-secondary mb-4">Toggle each day open/closed and set custom hours.</p>
             <div className="space-y-2">
               {form.days.map((d, idx) => (
-                <div key={d.day} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
-                  <span className="w-28 text-sm font-medium text-text-primary shrink-0">{d.day}</span>
+                <div key={d.day} className="flex flex-wrap items-center gap-2 sm:gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <span className="w-20 sm:w-28 text-xs sm:text-sm font-medium text-text-primary shrink-0">{d.day}</span>
                   <label className="relative inline-flex items-center cursor-pointer">
                     <input type="checkbox" checked={d.isOpen} onChange={() => toggleDay(idx)} className="sr-only peer" />
                     <div className="w-9 h-5 bg-text-secondary/30 rounded-full peer-checked:bg-mint-confirm after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                   </label>
-                  <span className={`text-xs font-medium w-12 ${d.isOpen ? 'text-mint-confirm' : 'text-red-500'}`}>{d.isOpen ? 'Open' : 'Closed'}</span>
+                  <span className={`text-xs font-medium w-10 sm:w-12 ${d.isOpen ? 'text-mint-confirm' : 'text-red-500'}`}>{d.isOpen ? 'Open' : 'Closed'}</span>
                   {d.isOpen && (
-                    <input value={d.hours} onChange={(e) => updateDayHours(idx, e.target.value)} placeholder="10:00 AM – 8:00 PM" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                    <input value={d.hours} onChange={(e) => updateDayHours(idx, e.target.value)} placeholder="10:00 AM – 8:00 PM" className="flex-1 min-w-[140px] px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
                   )}
                 </div>
               ))}
@@ -2243,7 +2267,7 @@ function AdminContactInfo() {
 }
 
 export default function Admin() {
-  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
   const { data: profile } = useQuery({
     queryKey: ['profile'],
@@ -2282,17 +2306,13 @@ export default function Admin() {
 
   return (
     <div className="flex min-h-screen">
-      <AdminSidebar />
-      <div className="flex-1 bg-bg min-h-screen">
-        <div className="lg:hidden bg-surface border-b border-border px-4 py-3 flex gap-2 overflow-x-auto">
-          {navItems.map((item) => {
-            const active = item.end ? location.pathname === item.path : location.pathname.startsWith(item.path);
-            return (
-              <Link key={item.path} to={item.path} className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${active ? 'bg-accent text-white' : 'text-text-secondary hover:bg-bg dark:hover:bg-surface/80'}`}>
-                {item.label}
-              </Link>
-            );
-          })}
+      <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 bg-bg min-h-screen flex flex-col">
+        <div className="lg:hidden bg-surface border-b border-border px-2 sm:px-4 py-2 sm:py-3 flex items-center gap-3 shrink-0">
+          <button onClick={() => setSidebarOpen(true)} className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg transition-colors">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+          <span className="font-display text-base font-bold text-text-primary">Admin Panel</span>
         </div>
         <Routes>
           <Route index element={<AdminOverview />} />
