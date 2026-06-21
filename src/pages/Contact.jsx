@@ -24,7 +24,7 @@ export default function Contact() {
     },
     {
       title: 'Call / WhatsApp',
-      lines: [info.phone || '', `${info.weekdayLabel || ''}: ${info.weekdayHours || ''}`].filter(Boolean),
+      lines: [info.phone || '', 'Call us during business hours'],
       icon: icons.phone,
       action: { label: 'Call Now', href: `tel:${info.phone?.replace(/\s/g, '') || ''}` },
     },
@@ -165,14 +165,24 @@ export default function Contact() {
             <div className="bg-surface rounded-xl border border-border p-6">
               <h3 className="font-semibold text-sm text-text-primary mb-3">Business Hours</h3>
               <div className="space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">{info?.weekdayLabel || 'Saturday – Thursday'}</span>
-                  <span className="font-medium">{info?.weekdayHours || '10:00 AM – 8:00 PM'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-text-secondary">{info?.fridayLabel || 'Friday'}</span>
-                  <span className="text-red-500 font-medium">{info?.fridayHours || 'Closed'}</span>
-                </div>
+                {(info?.days?.length ? info.days : [
+                  { day: 'Saturday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+                  { day: 'Sunday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+                  { day: 'Monday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+                  { day: 'Tuesday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+                  { day: 'Wednesday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+                  { day: 'Thursday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+                  { day: 'Friday', isOpen: false, hours: 'Closed' },
+                ]).map((d) => (
+                  <div key={d.day} className="flex justify-between">
+                    <span className="text-text-secondary">{d.day}</span>
+                    {d.isOpen ? (
+                      <span className="font-medium">{d.hours}</span>
+                    ) : (
+                      <span className="text-red-500 font-medium">{d.hours || 'Closed'}</span>
+                    )}
+                  </div>
+                ))}
               </div>
             </div>
 

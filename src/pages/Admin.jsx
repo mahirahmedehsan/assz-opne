@@ -1629,10 +1629,20 @@ function AdminHeroSlides() {
   );
 }
 
+const defaultDays = [
+  { day: 'Saturday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+  { day: 'Sunday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+  { day: 'Monday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+  { day: 'Tuesday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+  { day: 'Wednesday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+  { day: 'Thursday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
+  { day: 'Friday', isOpen: false, hours: 'Closed' },
+];
+
 function AdminContactInfo() {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useContactInfo();
-  const [form, setForm] = useState({ address: '', phone: '', email: '', whatsapp: '', weekdayLabel: '', weekdayHours: '', fridayLabel: '', fridayHours: '', mapLink: '' });
+  const { data } = useContactInfo();
+  const [form, setForm] = useState({ address: '', phone: '', email: '', whatsapp: '', mapLink: '', days: defaultDays });
 
   const saveMutation = useMutation({
     mutationFn: (data) => api.put('/contact-info', data),
@@ -1649,14 +1659,25 @@ function AdminContactInfo() {
         phone: c.phone || '',
         email: c.email || '',
         whatsapp: c.whatsapp || '',
-        weekdayLabel: c.weekdayLabel || '',
-        weekdayHours: c.weekdayHours || '',
-        fridayLabel: c.fridayLabel || '',
-        fridayHours: c.fridayHours || '',
         mapLink: c.mapLink || '',
+        days: c.days?.length ? c.days : defaultDays,
       });
     }
   }, [data]);
+
+  const toggleDay = (idx) => {
+    setForm((prev) => {
+      const days = prev.days.map((d, i) => i === idx ? { ...d, isOpen: !d.isOpen } : d);
+      return { ...prev, days };
+    });
+  };
+
+  const updateDayHours = (idx, hours) => {
+    setForm((prev) => {
+      const days = prev.days.map((d, i) => i === idx ? { ...d, hours } : d);
+      return { ...prev, days };
+    });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -1696,24 +1717,22 @@ function AdminContactInfo() {
           </div>
 
           <div className="border-t border-border pt-4">
-            <h3 className="text-sm font-semibold text-text-primary mb-3">Business Hours</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-medium text-text-primary mb-1.5">Weekday Label</label>
-                <input value={form.weekdayLabel} onChange={(e) => setForm({ ...form, weekdayLabel: e.target.value })} placeholder="Saturday – Thursday" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-text-primary mb-1.5">Weekday Hours</label>
-                <input value={form.weekdayHours} onChange={(e) => setForm({ ...form, weekdayHours: e.target.value })} placeholder="10:00 AM – 8:00 PM" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-text-primary mb-1.5">Friday Label</label>
-                <input value={form.fridayLabel} onChange={(e) => setForm({ ...form, fridayLabel: e.target.value })} placeholder="Friday" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-text-primary mb-1.5">Friday Hours</label>
-                <input value={form.fridayHours} onChange={(e) => setForm({ ...form, fridayHours: e.target.value })} placeholder="Closed" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
-              </div>
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Business Hours — 7 Days</h3>
+            <p className="text-xs text-text-secondary mb-4">Toggle each day open/closed and set custom hours.</p>
+            <div className="space-y-2">
+              {form.days.map((d, idx) => (
+                <div key={d.day} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <span className="w-28 text-sm font-medium text-text-primary shrink-0">{d.day}</span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" checked={d.isOpen} onChange={() => toggleDay(idx)} className="sr-only peer" />
+                    <div className="w-9 h-5 bg-text-secondary/30 rounded-full peer-checked:bg-mint-confirm after:content-[''] after:absolute after:top-0.5 after:start-0.5 after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  </label>
+                  <span className={`text-xs font-medium w-12 ${d.isOpen ? 'text-mint-confirm' : 'text-red-500'}`}>{d.isOpen ? 'Open' : 'Closed'}</span>
+                  {d.isOpen && (
+                    <input value={d.hours} onChange={(e) => updateDayHours(idx, e.target.value)} placeholder="10:00 AM – 8:00 PM" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  )}
+                </div>
+              ))}
             </div>
           </div>
 
