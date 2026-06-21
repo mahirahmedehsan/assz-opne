@@ -121,8 +121,8 @@ function SocialMediaSection() {
         ))}
       </div>
       <div className="text-center mt-8">
-        <Link to="/social-media" className="text-sm font-semibold text-accent hover:text-blue-700 transition-colors">
-          View All Videos →
+        <Link to="/about#social-media" className="text-sm font-semibold text-accent hover:text-blue-700 transition-colors">
+          Learn More About Us →
         </Link>
       </div>
     </section>

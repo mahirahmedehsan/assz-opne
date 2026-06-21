@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAboutInfo } from '../hooks/useAboutInfo';
+import api from '../services/api';
 
 export default function About() {
   const { data } = useAboutInfo();
@@ -95,6 +97,8 @@ export default function About() {
         </div>
       </section>
 
+      <SocialMediaSection />
+
       <section className="max-w-7xl mx-auto px-4 py-20">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl font-bold text-text-primary mb-4">Meet Our Team</h2>
@@ -129,5 +133,54 @@ export default function About() {
         </div>
       </section>
     </div>
+  );
+}
+
+function SocialMediaSection() {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    api.get('/social-media/featured')
+      .then((res) => { if (mounted) setVideos(res.data.videos); })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+
+  if (loading || videos.length === 0) return null;
+
+  return (
+    <section id="social-media" className="bg-surface/50 border-y border-border py-20">
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <p className="section-subtitle">Social Media</p>
+          <h2 className="font-display text-3xl font-bold text-text-primary mb-4">Follow Our Work</h2>
+          <p className="text-text-secondary max-w-xl mx-auto">Watch our latest videos and see what we're up to on YouTube, TikTok, Instagram, and Facebook.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {videos.slice(0, 4).map((video) => (
+            <div key={video._id} className="group bg-surface rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/30 transition-all duration-300">
+              <div className="relative aspect-[9/16] bg-bg overflow-hidden">
+                <iframe
+                  src={video.embedUrl}
+                  title={video.title || 'Video'}
+                  className="absolute inset-0 w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  loading="lazy"
+                />
+              </div>
+              {video.title && (
+                <div className="p-3">
+                  <h3 className="font-semibold text-xs text-text-primary line-clamp-2">{video.title}</h3>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
