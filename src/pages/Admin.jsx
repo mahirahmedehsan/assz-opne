@@ -6,6 +6,7 @@ import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useAdminHeroSlides, useCreateHeroSlide, useUpdateHeroSlide, useDeleteHeroSlide } from '../hooks/useHeroSlides';
 import { useContactInfo } from '../hooks/useContactInfo';
+import { useAboutInfo } from '../hooks/useAboutInfo';
 import StatusStamp from '../components/StatusStamp';
 import { useToast } from '../components/Toast';
 import api from '../services/api';
@@ -22,6 +23,7 @@ const navItems = [
   { path: '/admin/messages', label: 'Messages', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { path: '/admin/hero-slides', label: 'Hero Slides', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
   { path: '/admin/contact-info', label: 'Contact Info', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
+  { path: '/admin/about-info', label: 'About', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
 ];
 
 function AdminSidebar() {
@@ -1629,6 +1631,269 @@ function AdminHeroSlides() {
   );
 }
 
+function AdminAboutInfo() {
+  const queryClient = useQueryClient();
+  const { data } = useAboutInfo();
+  const defaultData = {
+    heroTitle: "Pabna's Most Trusted Apple Device Service Center",
+    heroDescription: "We're a team of passionate technicians, retailers, and customer service professionals dedicated to keeping Apple devices running at their best.",
+    stats: [
+      { value: '5+', label: 'Years Experience' },
+      { value: '2,000+', label: 'Devices Repaired' },
+      { value: '98%', label: 'Customer Satisfaction' },
+      { value: '90-Day', label: 'Warranty on All Repairs' },
+    ],
+    missionTitle: 'Our Mission',
+    missionDescription: "To provide fast, reliable, and affordable Apple device service with the transparency and precision of a professional workshop — right here in Pabna.",
+    values: [
+      { title: 'Quality Parts', desc: 'We use genuine or high-grade replacement parts sourced from trusted suppliers.', icon: '🛡️' },
+      { title: 'Certified Technicians', desc: 'Every repair is performed by trained professionals with years of hands-on experience.', icon: '🔧' },
+      { title: 'Transparent Pricing', desc: 'You get a detailed quote before any work begins. No hidden fees, no surprises.', icon: '💰' },
+      { title: 'Fast Service', desc: 'Most repairs completed within 24 hours. Same-day service available for common issues.', icon: '⚡' },
+    ],
+    timeline: [
+      { year: '2019', event: 'ASSZ founded in Pabna with a single repair bench' },
+      { year: '2020', event: 'Expanded to accessories retail; launched online presence' },
+      { year: '2021', event: 'Became authorized service partner for major brands' },
+      { year: '2023', event: 'Opened second location; 2,000+ devices served' },
+      { year: '2025', event: 'Launched full e-commerce platform with nationwide delivery' },
+    ],
+    team: [
+      { name: 'Mahir Ahmed Ehsan', role: 'Founder & Lead Technician', initials: 'ME' },
+      { name: 'Fatima Akter', role: 'Customer Relations Manager', initials: 'FA' },
+      { name: 'Rakib Hasan', role: 'Senior Repair Technician', initials: 'RH' },
+      { name: 'Nusrat Jahan', role: 'Sales & Inventory Lead', initials: 'NJ' },
+    ],
+    ctaTitle: 'Ready to Get Started?',
+    ctaDescription: 'Book a repair, shop accessories, or just stop by for a free diagnostic.',
+    ctaPrimaryLabel: 'Book a Repair',
+    ctaPrimaryLink: '/repair-services',
+    ctaSecondaryLabel: 'Visit Our Store',
+    ctaSecondaryLink: '/contact',
+  };
+  const [form, setForm] = useState(defaultData);
+  const [activeTab, setActiveTab] = useState('hero');
+
+  const saveMutation = useMutation({
+    mutationFn: (data) => api.put('/about-info', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['aboutInfo'] });
+    },
+  });
+
+  useEffect(() => {
+    if (data?.aboutInfo) {
+      const c = data.aboutInfo;
+      setForm({
+        heroTitle: c.heroTitle || defaultData.heroTitle,
+        heroDescription: c.heroDescription || defaultData.heroDescription,
+        stats: c.stats?.length ? c.stats : defaultData.stats,
+        missionTitle: c.missionTitle || defaultData.missionTitle,
+        missionDescription: c.missionDescription || defaultData.missionDescription,
+        values: c.values?.length ? c.values : defaultData.values,
+        timeline: c.timeline?.length ? c.timeline : defaultData.timeline,
+        team: c.team?.length ? c.team : defaultData.team,
+        ctaTitle: c.ctaTitle || defaultData.ctaTitle,
+        ctaDescription: c.ctaDescription || defaultData.ctaDescription,
+        ctaPrimaryLabel: c.ctaPrimaryLabel || defaultData.ctaPrimaryLabel,
+        ctaPrimaryLink: c.ctaPrimaryLink || defaultData.ctaPrimaryLink,
+        ctaSecondaryLabel: c.ctaSecondaryLabel || defaultData.ctaSecondaryLabel,
+        ctaSecondaryLink: c.ctaSecondaryLink || defaultData.ctaSecondaryLink,
+      });
+    }
+  }, [data]);
+
+  const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const updateArrayItem = (key, idx, field, value) => {
+    setForm((prev) => {
+      const arr = prev[key].map((item, i) => i === idx ? { ...item, [field]: value } : item);
+      return { ...prev, [key]: arr };
+    });
+  };
+
+  const addArrayItem = (key, template) => {
+    setForm((prev) => ({ ...prev, [key]: [...prev[key], { ...template }] }));
+  };
+
+  const removeArrayItem = (key, idx) => {
+    setForm((prev) => ({ ...prev, [key]: prev[key].filter((_, i) => i !== idx) }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate({
+      heroTitle: form.heroTitle,
+      heroDescription: form.heroDescription,
+      stats: form.stats,
+      missionTitle: form.missionTitle,
+      missionDescription: form.missionDescription,
+      values: form.values,
+      timeline: form.timeline,
+      team: form.team,
+      ctaTitle: form.ctaTitle,
+      ctaDescription: form.ctaDescription,
+      ctaPrimaryLabel: form.ctaPrimaryLabel,
+      ctaPrimaryLink: form.ctaPrimaryLink,
+      ctaSecondaryLabel: form.ctaSecondaryLabel,
+      ctaSecondaryLink: form.ctaSecondaryLink,
+    });
+  };
+
+  const tabs = [
+    { key: 'hero', label: 'Hero' },
+    { key: 'stats', label: 'Stats' },
+    { key: 'mission', label: 'Mission & Values' },
+    { key: 'timeline', label: 'Timeline' },
+    { key: 'team', label: 'Team' },
+    { key: 'cta', label: 'CTA' },
+  ];
+
+  return (
+    <div className="p-6 md:p-8">
+      <div className="mb-6">
+        <h1 className="font-display text-2xl font-bold text-text-primary">About Page</h1>
+        <p className="text-sm text-text-secondary mt-0.5">Manage all content on the About page.</p>
+      </div>
+
+      <div className="flex gap-1 mb-6 flex-wrap">
+        {tabs.map((t) => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === t.key ? 'bg-accent text-white' : 'bg-surface text-text-secondary border border-border hover:border-accent'}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-surface rounded-xl border border-border shadow-sm max-w-2xl">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {activeTab === 'hero' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Hero Title</label>
+                <textarea value={form.heroTitle} onChange={(e) => updateField('heroTitle', e.target.value)} rows={3} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                <p className="text-xs text-text-secondary mt-1">Use &lt;br /&gt; for line breaks.</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Hero Description</label>
+                <textarea value={form.heroDescription} onChange={(e) => updateField('heroDescription', e.target.value)} rows={3} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'stats' && (
+            <div className="space-y-3">
+              <p className="text-xs text-text-secondary">Stats shown in the hero stats row.</p>
+              {form.stats.map((s, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={s.value} onChange={(e) => updateArrayItem('stats', idx, 'value', e.target.value)} placeholder="5+" className="w-24 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={s.label} onChange={(e) => updateArrayItem('stats', idx, 'label', e.target.value)} placeholder="Years Experience" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('stats', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('stats', { value: '', label: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Stat</button>
+            </div>
+          )}
+
+          {activeTab === 'mission' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Mission Title</label>
+                <input value={form.missionTitle} onChange={(e) => updateField('missionTitle', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Mission Description</label>
+                <textarea value={form.missionDescription} onChange={(e) => updateField('missionDescription', e.target.value)} rows={3} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div className="border-t border-border pt-4">
+                <h4 className="text-sm font-semibold text-text-primary mb-3">Values / Features</h4>
+                {form.values.map((v, idx) => (
+                  <div key={idx} className="flex items-start gap-3 p-3 rounded-lg border border-border bg-bg/40 mb-2">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex gap-2">
+                        <input value={v.title} onChange={(e) => updateArrayItem('values', idx, 'title', e.target.value)} placeholder="Title" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                        <input value={v.icon} onChange={(e) => updateArrayItem('values', idx, 'icon', e.target.value)} placeholder="🛡️" className="w-16 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface text-center focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                      </div>
+                      <textarea value={v.desc} onChange={(e) => updateArrayItem('values', idx, 'desc', e.target.value)} placeholder="Description" rows={2} className="w-full px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                    </div>
+                    <button type="button" onClick={() => removeArrayItem('values', idx)} className="text-red-500 hover:text-red-700 p-1 mt-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                  </div>
+                ))}
+                <button type="button" onClick={() => addArrayItem('values', { title: '', desc: '', icon: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Value</button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'timeline' && (
+            <div className="space-y-3">
+              <p className="text-xs text-text-secondary">Company journey timeline entries.</p>
+              {form.timeline.map((t, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={t.year} onChange={(e) => updateArrayItem('timeline', idx, 'year', e.target.value)} placeholder="2019" className="w-20 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={t.event} onChange={(e) => updateArrayItem('timeline', idx, 'event', e.target.value)} placeholder="Event description" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('timeline', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('timeline', { year: '', event: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Timeline Entry</button>
+            </div>
+          )}
+
+          {activeTab === 'team' && (
+            <div className="space-y-3">
+              <p className="text-xs text-text-secondary">Team member profiles.</p>
+              {form.team.map((t, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={t.name} onChange={(e) => updateArrayItem('team', idx, 'name', e.target.value)} placeholder="Name" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={t.role} onChange={(e) => updateArrayItem('team', idx, 'role', e.target.value)} placeholder="Role" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={t.initials} onChange={(e) => updateArrayItem('team', idx, 'initials', e.target.value)} placeholder="ME" className="w-16 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface text-center focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('team', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('team', { name: '', role: '', initials: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Team Member</button>
+            </div>
+          )}
+
+          {activeTab === 'cta' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">CTA Title</label>
+                <input value={form.ctaTitle} onChange={(e) => updateField('ctaTitle', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">CTA Description</label>
+                <textarea value={form.ctaDescription} onChange={(e) => updateField('ctaDescription', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Primary Button Label</label>
+                  <input value={form.ctaPrimaryLabel} onChange={(e) => updateField('ctaPrimaryLabel', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Primary Button Link</label>
+                  <input value={form.ctaPrimaryLink} onChange={(e) => updateField('ctaPrimaryLink', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Secondary Button Label</label>
+                  <input value={form.ctaSecondaryLabel} onChange={(e) => updateField('ctaSecondaryLabel', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Secondary Button Link</label>
+                  <input value={form.ctaSecondaryLink} onChange={(e) => updateField('ctaSecondaryLink', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2 border-t border-border">
+            <button type="submit" className="btn-primary text-sm" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 const defaultDays = [
   { day: 'Saturday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
   { day: 'Sunday', isOpen: true, hours: '10:00 AM – 8:00 PM' },
@@ -1811,6 +2076,7 @@ export default function Admin() {
           <Route path="messages" element={<AdminMessages />} />
           <Route path="hero-slides" element={<AdminHeroSlides />} />
           <Route path="contact-info" element={<AdminContactInfo />} />
+          <Route path="about-info" element={<AdminAboutInfo />} />
         </Routes>
       </div>
     </div>
