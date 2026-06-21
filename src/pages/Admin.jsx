@@ -2261,7 +2261,7 @@ function AdminContactInfo() {
               {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
