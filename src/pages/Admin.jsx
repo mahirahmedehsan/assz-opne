@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Link, useLocation } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../context/AuthContext';
 import { useProducts } from '../hooks/useProducts';
 import { useCategories } from '../hooks/useCategories';
 import { useAdminHeroSlides, useCreateHeroSlide, useUpdateHeroSlide, useDeleteHeroSlide } from '../hooks/useHeroSlides';
+import { useContactInfo } from '../hooks/useContactInfo';
 import StatusStamp from '../components/StatusStamp';
 import { useToast } from '../components/Toast';
 import api from '../services/api';
@@ -20,6 +21,7 @@ const navItems = [
   { path: '/admin/reviews', label: 'Reviews', icon: 'M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z' },
   { path: '/admin/messages', label: 'Messages', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { path: '/admin/hero-slides', label: 'Hero Slides', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+  { path: '/admin/contact-info', label: 'Contact Info', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
 ];
 
 function AdminSidebar() {
@@ -1627,6 +1629,105 @@ function AdminHeroSlides() {
   );
 }
 
+function AdminContactInfo() {
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useContactInfo();
+  const [form, setForm] = useState({ address: '', phone: '', email: '', whatsapp: '', weekdayLabel: '', weekdayHours: '', fridayLabel: '', fridayHours: '', mapLink: '' });
+
+  const saveMutation = useMutation({
+    mutationFn: (data) => api.put('/contact-info', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contactInfo'] });
+    },
+  });
+
+  useEffect(() => {
+    if (data?.contactInfo) {
+      const c = data.contactInfo;
+      setForm({
+        address: c.address || '',
+        phone: c.phone || '',
+        email: c.email || '',
+        whatsapp: c.whatsapp || '',
+        weekdayLabel: c.weekdayLabel || '',
+        weekdayHours: c.weekdayHours || '',
+        fridayLabel: c.fridayLabel || '',
+        fridayHours: c.fridayHours || '',
+        mapLink: c.mapLink || '',
+      });
+    }
+  }, [data]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate(form);
+  };
+
+  return (
+    <div className="p-6 md:p-8">
+      <div className="mb-6">
+        <h1 className="font-display text-2xl font-bold text-text-primary">Contact Info</h1>
+        <p className="text-sm text-text-secondary mt-0.5">Manage the contact details shown on the Contact page.</p>
+      </div>
+
+      <div className="bg-surface rounded-xl border border-border shadow-sm max-w-2xl">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="block text-xs font-medium text-text-primary mb-1.5">Address</label>
+              <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">Phone</label>
+              <input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">Email</label>
+              <input value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">WhatsApp Number</label>
+              <input value={form.whatsapp} onChange={(e) => setForm({ ...form, whatsapp: e.target.value })} placeholder="8801700000000" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-text-primary mb-1.5">Google Maps Link</label>
+              <input value={form.mapLink} onChange={(e) => setForm({ ...form, mapLink: e.target.value })} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+            </div>
+          </div>
+
+          <div className="border-t border-border pt-4">
+            <h3 className="text-sm font-semibold text-text-primary mb-3">Business Hours</h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Weekday Label</label>
+                <input value={form.weekdayLabel} onChange={(e) => setForm({ ...form, weekdayLabel: e.target.value })} placeholder="Saturday – Thursday" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Weekday Hours</label>
+                <input value={form.weekdayHours} onChange={(e) => setForm({ ...form, weekdayHours: e.target.value })} placeholder="10:00 AM – 8:00 PM" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Friday Label</label>
+                <input value={form.fridayLabel} onChange={(e) => setForm({ ...form, fridayLabel: e.target.value })} placeholder="Friday" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Friday Hours</label>
+                <input value={form.fridayHours} onChange={(e) => setForm({ ...form, fridayHours: e.target.value })} placeholder="Closed" className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <button type="submit" className="btn-primary text-sm" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 export default function Admin() {
   const location = useLocation();
   const { user } = useAuth();
@@ -1690,6 +1791,7 @@ export default function Admin() {
           <Route path="repair-services" element={<AdminRepairServices />} />
           <Route path="messages" element={<AdminMessages />} />
           <Route path="hero-slides" element={<AdminHeroSlides />} />
+          <Route path="contact-info" element={<AdminContactInfo />} />
         </Routes>
       </div>
     </div>
