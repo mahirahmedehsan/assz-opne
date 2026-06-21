@@ -19,6 +19,7 @@ const Register = lazy(() => import('./pages/Register'));
 const Account = lazy(() => import('./pages/Account'));
 const About = lazy(() => import('./pages/About'));
 const Contact = lazy(() => import('./pages/Contact'));
+const SocialMedia = lazy(() => import('./pages/SocialMedia'));
 const Admin = lazy(() => import('./pages/Admin'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -48,6 +49,7 @@ function App() {
             <Route path="/account" element={<Account />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/social-media" element={<SocialMedia />} />
             <Route path="/admin/*" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

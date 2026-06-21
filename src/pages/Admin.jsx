@@ -26,6 +26,7 @@ const navItems = [
   { path: '/admin/contact-info', label: 'Contact Info', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { path: '/admin/about-info', label: 'About', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
   { path: '/admin/repair-page', label: 'Repair Page', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
+  { path: '/admin/social-media', label: 'Social Media', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
 ];
 
 function AdminSidebar({ isOpen, onClose }) {
@@ -2266,6 +2267,215 @@ function AdminContactInfo() {
   );
 }
 
+function AdminSocialMedia() {
+  const queryClient = useQueryClient();
+  const { confirm } = useToast();
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['admin-social-media'],
+    queryFn: () => api.get('/social-media/admin').then((r) => r.data),
+  });
+  const videos = data?.videos || [];
+
+  const saveMutation = useMutation({
+    mutationFn: ({ id, data }) => id ? api.put(`/social-media/${id}`, data) : api.post('/social-media', data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-social-media'] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => api.delete(`/social-media/${id}`),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin-social-media'] }),
+  });
+
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState(null);
+  const [form, setForm] = useState({
+    platform: 'youtube', url: '', title: '', description: '', thumbnail: '', isFeatured: false, isActive: true,
+  });
+
+  const platformOptions = [
+    { value: 'youtube', label: 'YouTube' },
+    { value: 'tiktok', label: 'TikTok' },
+    { value: 'instagram', label: 'Instagram' },
+    { value: 'facebook', label: 'Facebook' },
+  ];
+
+  const openAdd = () => {
+    setEditing(null);
+    setForm({ platform: 'youtube', url: '', title: '', description: '', thumbnail: '', isFeatured: false, isActive: true });
+    setShowForm(true);
+  };
+
+  const openEdit = (v) => {
+    setEditing(v._id);
+    setForm({
+      platform: v.platform || 'youtube',
+      url: v.url || '',
+      title: v.title || '',
+      description: v.description || '',
+      thumbnail: v.thumbnail || '',
+      isFeatured: v.isFeatured || false,
+      isActive: v.isActive !== false,
+    });
+    setShowForm(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate({ id: editing, data: form });
+    setShowForm(false);
+  };
+
+  const platformIcons = {
+    youtube: { color: 'text-red-500', bg: 'bg-red-500/10' },
+    tiktok: { color: 'text-pink-500', bg: 'bg-pink-500/10' },
+    instagram: { color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    facebook: { color: 'text-blue-500', bg: 'bg-blue-500/10' },
+  };
+
+  return (
+    <div className="p-6 md:p-8">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="font-display text-2xl font-bold text-text-primary">Social Media Videos</h1>
+          <p className="text-sm text-text-secondary mt-0.5">Manage videos from YouTube, TikTok, Instagram, and Facebook.</p>
+        </div>
+        <button onClick={openAdd} className="btn-primary text-sm">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+          Add Video
+        </button>
+      </div>
+
+      {isLoading ? (
+        <div className="grid gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-surface rounded-xl border border-border p-5 animate-pulse">
+              <div className="flex gap-4">
+                <div className="w-24 h-16 bg-bg rounded-lg shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-bg rounded w-3/4" />
+                  <div className="h-3 bg-bg rounded w-1/2" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : videos.length === 0 ? (
+        <div className="bg-surface rounded-xl border border-border p-12 text-center">
+          <svg className="w-8 h-8 text-text-secondary mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+          <p className="text-sm text-text-secondary">No videos yet. Add your first video!</p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {videos.map((v, i) => {
+            const pi = platformIcons[v.platform] || platformIcons.youtube;
+            return (
+              <div key={v._id} className={`bg-surface rounded-xl border border-border shadow-sm overflow-hidden transition-all ${!v.isActive ? 'opacity-60' : ''}`}>
+                <div className="flex flex-col sm:flex-row">
+                  <div className="sm:w-48 h-24 bg-bg relative overflow-hidden shrink-0">
+                    {v.thumbnail ? (
+                      <img src={v.thumbnail} alt="" className="w-full h-full object-cover" />
+                    ) : v.platform === 'youtube' ? (
+                      <div className="w-full h-full flex items-center justify-center text-red-500/30">
+                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0C.488 3.45.029 5.804 0 12c.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0C23.512 20.55 23.971 18.196 24 12c-.029-6.185-.484-8.549-4.385-8.816zM9 16V8l8 4-8 4z" /></svg>
+                      </div>
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-text-secondary/20 text-xs">No thumbnail</div>
+                    )}
+                  </div>
+                  <div className="flex-1 p-4 sm:p-5 min-w-0">
+                    <div className="flex items-start justify-between gap-2 sm:gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${pi.color} ${pi.bg}`}>
+                            {v.platform.charAt(0).toUpperCase() + v.platform.slice(1)}
+                          </span>
+                          {v.isFeatured && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-accent/10 text-accent">Featured</span>
+                          )}
+                          <span className={`w-2 h-2 rounded-full ${v.isActive ? 'bg-mint-confirm' : 'bg-text-secondary/30'}`} />
+                        </div>
+                        <h3 className="font-semibold text-sm text-text-primary truncate">{v.title || 'Untitled'}</h3>
+                        {v.description && <p className="text-xs text-text-secondary line-clamp-1 mt-0.5">{v.description}</p>}
+                        <p className="text-[10px] text-text-secondary font-mono mt-1 truncate">{v.url}</p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button onClick={() => openEdit(v)} className="p-1.5 rounded-lg text-text-secondary hover:text-accent hover:bg-bg transition-colors">
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </button>
+                        <button
+                          onClick={async () => { if (await confirm('Delete this video?')) deleteMutation.mutate(v._id); }}
+                          className="p-1.5 rounded-lg text-text-secondary hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {showForm && (
+        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-start justify-center pt-10 pb-10 overflow-y-auto" onClick={() => setShowForm(false)}>
+          <div className="bg-surface rounded-2xl border border-border shadow-2xl w-full max-w-lg mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-border">
+              <h2 className="font-display text-lg font-bold text-text-primary">{editing ? 'Edit Video' : 'Add Video'}</h2>
+              <button onClick={() => setShowForm(false)} className="p-1.5 rounded-lg text-text-secondary hover:text-text-primary hover:bg-bg transition-colors">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Platform *</label>
+                <select value={form.platform} onChange={(e) => setForm({ ...form, platform: e.target.value })} className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary outline-none">
+                  {platformOptions.map((o) => (
+                    <option key={o.value} value={o.value}>{o.label}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Video URL *</label>
+                <input type="url" value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} required placeholder="https://www.youtube.com/watch?v=..." className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none" />
+                <p className="text-[10px] text-text-secondary mt-1">Paste the video URL. The embed URL will be generated automatically.</p>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Title</label>
+                <input type="text" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Video title" className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Description</label>
+                <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} placeholder="Short description" className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none resize-none" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-text-secondary uppercase tracking-wider mb-1.5">Thumbnail URL</label>
+                <input type="url" value={form.thumbnail} onChange={(e) => setForm({ ...form, thumbnail: e.target.value })} placeholder="https://..." className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-secondary/50 outline-none" />
+              </div>
+              <div className="flex items-center gap-6">
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.isFeatured} onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })} className="text-accent rounded" />
+                  <span className="font-medium text-text-primary">Show on Homepage</span>
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input type="checkbox" checked={form.isActive} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} className="text-accent rounded" />
+                  <span className="font-medium text-text-primary">Active</span>
+                </label>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="submit" disabled={saveMutation.isPending} className="btn-primary text-sm">{saveMutation.isPending ? 'Saving...' : 'Save'}</button>
+                <button type="button" onClick={() => setShowForm(false)} className="btn-secondary text-sm">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
@@ -2327,6 +2537,7 @@ export default function Admin() {
           <Route path="hero-slides" element={<AdminHeroSlides />} />
           <Route path="contact-info" element={<AdminContactInfo />} />
           <Route path="about-info" element={<AdminAboutInfo />} />
+          <Route path="social-media" element={<AdminSocialMedia />} />
           <Route path="repair-page" element={<AdminRepairPageSettings />} />
         </Routes>
       </div>

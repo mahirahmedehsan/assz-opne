@@ -4,6 +4,7 @@ import { useProducts } from '../hooks/useProducts';
 import { useAllReviews } from '../hooks/useReviews';
 import { useHeroSlides } from '../hooks/useHeroSlides';
 import { useInView } from '../hooks/useInView';
+import api from '../services/api';
 
 const quickLinks = [
   { label: 'Screen Repair', icon: 'M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z', color: 'bg-accent/10 text-accent', href: '/repair-services' },
@@ -74,6 +75,59 @@ const steps = [
   { num: '3', title: 'Get a Quote', desc: 'We give you a transparent price before any work begins.' },
   { num: '4', title: 'Repair Complete', desc: 'Device fixed and tested. Pick up or we deliver.' },
 ];
+
+function SocialMediaSection() {
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [smRef, smInView] = useInView();
+
+  useEffect(() => {
+    let mounted = true;
+    api.get('/social-media/featured')
+      .then((res) => { if (mounted) setVideos(res.data.videos); })
+      .catch(() => {})
+      .finally(() => { if (mounted) setLoading(false); });
+    return () => { mounted = false; };
+  }, []);
+
+  if (loading || videos.length === 0) return null;
+
+  return (
+    <section ref={smRef} className={`max-w-7xl mx-auto px-4 py-16 transition-all duration-700 ${smInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
+      <div className="text-center mb-10">
+        <p className="section-subtitle">Social Media</p>
+        <h2 className="section-title text-text-primary mt-1">Follow Us</h2>
+        <p className="text-text-secondary text-sm max-w-xl mx-auto mt-2">Watch our latest videos on YouTube, TikTok, Instagram, and Facebook.</p>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {videos.slice(0, 4).map((video) => (
+          <div key={video._id} className="group bg-surface rounded-xl border border-border overflow-hidden hover:shadow-lg hover:border-accent/30 transition-all duration-300">
+            <div className="relative aspect-[9/16] bg-bg overflow-hidden">
+              <iframe
+                src={video.embedUrl}
+                title={video.title || 'Video'}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowFullScreen
+                loading="lazy"
+              />
+            </div>
+            {video.title && (
+              <div className="p-3">
+                <h3 className="font-semibold text-xs text-text-primary line-clamp-2">{video.title}</h3>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      <div className="text-center mt-8">
+        <Link to="/social-media" className="text-sm font-semibold text-accent hover:text-blue-700 transition-colors">
+          View All Videos →
+        </Link>
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   const { data: featuredData } = useProducts({ limit: 4, featured: 'true' });
@@ -452,6 +506,7 @@ export default function Home() {
         </div>
       </section>
 
+      <SocialMediaSection />
       <section ref={whatsappRef} className={`max-w-7xl mx-auto px-4 py-16 transition-all duration-700 ${whatsappInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}>
         <div className="bg-gradient-to-br from-accent via-accent-hover to-[#312E81] rounded-2xl p-10 md:p-14 text-white text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_rgba(255,255,255,0.15)_0%,_transparent_60%)]" />
