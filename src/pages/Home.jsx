@@ -203,6 +203,7 @@ export default function Home() {
   const [storeRef, storeInView] = useInView();
   const [whatsappRef, whatsappInView] = useInView();
 
+
   return (
     <div>
       <section ref={heroRef} className="relative text-white overflow-hidden">

@@ -186,6 +186,9 @@ export default function Contact() {
               </div>
             </div>
 
+
+          </div>
+        </div>
             <div className="bg-accent/5 rounded-xl border border-accent/10 p-6 text-center">
               <h3 className="font-semibold text-sm text-text-primary mb-2">Need Quick Help?</h3>
               <p className="text-xs text-text-secondary mb-4">Chat with us on WhatsApp — we respond within minutes.</p>
@@ -194,8 +197,6 @@ export default function Contact() {
                 Chat on WhatsApp
               </a>
             </div>
-          </div>
-        </div>
       </section>
     </div>
   );
