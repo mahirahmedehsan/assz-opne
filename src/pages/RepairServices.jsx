@@ -2,22 +2,27 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useRepairServices } from '../hooks/useCategories';
 import { useCreateBooking, useCreateGuestBooking } from '../hooks/useRepairBooking';
+import { useRepairPageInfo } from '../hooks/useRepairPageInfo';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import Loader from '../components/Loader';
 
-const deviceTypes = ['Android Phone', 'iPhone', 'iPad', 'MacBook', 'Laptop', 'Apple Watch', 'AirPods', 'Other'];
-
-const timeSlots = [
+const defaultTimeSlots = [
   { value: 'morning', label: 'Morning (10AM–12PM)' },
   { value: 'afternoon', label: 'Afternoon (12PM–5PM)' },
   { value: 'evening', label: 'Evening (5PM–8PM)' },
 ];
 
+const defaultDeviceTypes = ['Android Phone', 'iPhone', 'iPad', 'MacBook', 'Laptop', 'Apple Watch', 'AirPods', 'Other'];
+
 export default function RepairServices() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { data: pageData } = useRepairPageInfo();
+  const pageInfo = pageData?.repairPageInfo;
+  const deviceTypes = pageInfo?.deviceTypes?.length ? pageInfo.deviceTypes.map((d) => d.value || d) : defaultDeviceTypes;
+  const timeSlots = pageInfo?.timeSlots?.length ? pageInfo.timeSlots : defaultTimeSlots;
   const [filter, setFilter] = useState({});
   const { data, isLoading } = useRepairServices(filter);
   const services = data?.services || [];
@@ -101,14 +106,15 @@ export default function RepairServices() {
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 glass-badge px-4 py-2 rounded-full mb-6">
               <span className="w-2 h-2 rounded-full bg-repair-amber animate-pulse" />
-              <span className="text-xs font-mono text-white/70 tracking-wider">Free diagnostic • 90-day warranty</span>
+              <span className="text-xs font-mono text-white/70 tracking-wider">{pageInfo?.heroBadge || 'Free diagnostic • 90-day warranty'}</span>
             </div>
             <h1 className="font-display text-4xl md:text-5xl font-bold mb-6 leading-tight">
-              Professional Repair<br />
-              <span className="text-accent">Services</span>
+              {(pageInfo?.heroTitle || 'Professional Repair<br />Services').split('<br />').map((s, i) => (
+                <span key={i}>{i > 0 && <br />}{s}</span>
+              ))}
             </h1>
             <p className="text-lg text-text-secondary max-w-lg leading-relaxed">
-              Screen repairs, battery replacements, software fixes, and more. Fast turnaround with genuine parts.
+              {pageInfo?.heroDescription || 'Screen repairs, battery replacements, software fixes, and more. Fast turnaround with genuine parts.'}
             </p>
           </div>
         </div>
@@ -117,8 +123,8 @@ export default function RepairServices() {
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div>
-            <h2 className="font-display text-2xl font-bold text-text-primary">Our Services</h2>
-            <p className="text-sm text-text-secondary mt-1">Select your device type to filter available services.</p>
+            <h2 className="font-display text-2xl font-bold text-text-primary">{pageInfo?.servicesTitle || 'Our Services'}</h2>
+            <p className="text-sm text-text-secondary mt-1">{pageInfo?.servicesDescription || 'Select your device type to filter available services.'}</p>
           </div>
           <button onClick={() => { setShowBooking(true); window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }); }} className="btn-primary mt-4 sm:mt-0">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -273,11 +279,11 @@ export default function RepairServices() {
 
       <section className="bg-surface border-y border-border">
         <div className="max-w-7xl mx-auto px-4 py-12 text-center">
-          <h2 className="font-display text-2xl font-bold text-text-primary mb-2">Don't Want to Book Online?</h2>
-          <p className="text-text-secondary mb-6">Call or visit us directly. We're open Saturday–Thursday, 10 AM – 8 PM.</p>
+          <h2 className="font-display text-2xl font-bold text-text-primary mb-2">{pageInfo?.offlineTitle || "Don't Want to Book Online?"}</h2>
+          <p className="text-text-secondary mb-6">{pageInfo?.offlineDescription || 'Call or visit us directly. We\'re open Saturday–Thursday, 10 AM – 8 PM.'}</p>
           <div className="flex justify-center gap-4">
-            <a href="tel:+8801700000000" className="btn-primary">Call Now</a>
-            <a href="https://wa.me/8801700000000" target="_blank" rel="noopener noreferrer" className="btn-secondary">Chat on WhatsApp</a>
+            <a href={`tel:${(pageInfo?.offlinePhone || '+8801700000000').replace(/\s/g, '')}`} className="btn-primary">Call Now</a>
+            <a href={`https://wa.me/${pageInfo?.offlineWhatsapp || '8801700000000'}`} target="_blank" rel="noopener noreferrer" className="btn-secondary">Chat on WhatsApp</a>
             <Link to="/contact" className="btn-secondary">Visit Our Store</Link>
           </div>
         </div>
@@ -285,11 +291,11 @@ export default function RepairServices() {
 
       <section className="max-w-7xl mx-auto px-4 py-12">
         <div className="bg-gradient-to-br from-repair-amber/5 to-amber-50 rounded-2xl p-8 border border-repair-amber/10 text-center">
-          <h2 className="font-display text-2xl font-bold text-text-primary mb-2">Track Your Repair</h2>
-          <p className="text-text-secondary mb-6 max-w-md mx-auto">Already booked a repair? Use your ticket number to check the status.</p>
-          <Link to="/track-repair/demo" className="btn-primary">
+          <h2 className="font-display text-2xl font-bold text-text-primary mb-2">{pageInfo?.trackTitle || 'Track Your Repair'}</h2>
+          <p className="text-text-secondary mb-6 max-w-md mx-auto">{pageInfo?.trackDescription || 'Already booked a repair? Use your ticket number to check the status.'}</p>
+          <Link to={pageInfo?.trackLink || '/track-repair/demo'} className="btn-primary">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-            Track My Repair
+            {pageInfo?.trackButtonLabel || 'Track My Repair'}
           </Link>
         </div>
       </section>

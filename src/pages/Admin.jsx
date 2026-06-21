@@ -7,6 +7,7 @@ import { useCategories } from '../hooks/useCategories';
 import { useAdminHeroSlides, useCreateHeroSlide, useUpdateHeroSlide, useDeleteHeroSlide } from '../hooks/useHeroSlides';
 import { useContactInfo } from '../hooks/useContactInfo';
 import { useAboutInfo } from '../hooks/useAboutInfo';
+import { useRepairPageInfo } from '../hooks/useRepairPageInfo';
 import StatusStamp from '../components/StatusStamp';
 import { useToast } from '../components/Toast';
 import api from '../services/api';
@@ -24,6 +25,7 @@ const navItems = [
   { path: '/admin/hero-slides', label: 'Hero Slides', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
   { path: '/admin/contact-info', label: 'Contact Info', icon: 'M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z' },
   { path: '/admin/about-info', label: 'About', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+  { path: '/admin/repair-page', label: 'Repair Page', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z' },
 ];
 
 function AdminSidebar() {
@@ -1631,6 +1633,234 @@ function AdminHeroSlides() {
   );
 }
 
+const defaultRepairPage = {
+  heroBadge: 'Free diagnostic • 90-day warranty',
+  heroTitle: 'Professional Repair<br />Services',
+  heroDescription: 'Screen repairs, battery replacements, software fixes, and more. Fast turnaround with genuine parts.',
+  servicesTitle: 'Our Services',
+  servicesDescription: 'Select your device type to filter available services.',
+  deviceTypes: [
+    { value: 'Android Phone', label: 'Android Phone' },
+    { value: 'iPhone', label: 'iPhone' },
+    { value: 'iPad', label: 'iPad' },
+    { value: 'MacBook', label: 'MacBook' },
+    { value: 'Laptop', label: 'Laptop' },
+    { value: 'Apple Watch', label: 'Apple Watch' },
+    { value: 'AirPods', label: 'AirPods' },
+    { value: 'Other', label: 'Other' },
+  ],
+  timeSlots: [
+    { value: 'morning', label: 'Morning (10AM–12PM)' },
+    { value: 'afternoon', label: 'Afternoon (12PM–5PM)' },
+    { value: 'evening', label: 'Evening (5PM–8PM)' },
+  ],
+  offlineTitle: "Don't Want to Book Online?",
+  offlineDescription: "Call or visit us directly. We're open Saturday–Thursday, 10 AM – 8 PM.",
+  offlinePhone: '+8801700000000',
+  offlineWhatsapp: '8801700000000',
+  trackTitle: 'Track Your Repair',
+  trackDescription: 'Already booked a repair? Use your ticket number to check the status.',
+  trackLink: '/track-repair/demo',
+  trackButtonLabel: 'Track My Repair',
+};
+
+function AdminRepairPageSettings() {
+  const queryClient = useQueryClient();
+  const { data } = useRepairPageInfo();
+  const [form, setForm] = useState(defaultRepairPage);
+  const [activeTab, setActiveTab] = useState('hero');
+
+  const saveMutation = useMutation({
+    mutationFn: (data) => api.put('/repair-page-info', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['repairPageInfo'] });
+    },
+  });
+
+  useEffect(() => {
+    if (data?.repairPageInfo) {
+      const c = data.repairPageInfo;
+      setForm({
+        heroBadge: c.heroBadge || defaultRepairPage.heroBadge,
+        heroTitle: c.heroTitle || defaultRepairPage.heroTitle,
+        heroDescription: c.heroDescription || defaultRepairPage.heroDescription,
+        servicesTitle: c.servicesTitle || defaultRepairPage.servicesTitle,
+        servicesDescription: c.servicesDescription || defaultRepairPage.servicesDescription,
+        deviceTypes: c.deviceTypes?.length ? c.deviceTypes : defaultRepairPage.deviceTypes,
+        timeSlots: c.timeSlots?.length ? c.timeSlots : defaultRepairPage.timeSlots,
+        offlineTitle: c.offlineTitle || defaultRepairPage.offlineTitle,
+        offlineDescription: c.offlineDescription || defaultRepairPage.offlineDescription,
+        offlinePhone: c.offlinePhone || defaultRepairPage.offlinePhone,
+        offlineWhatsapp: c.offlineWhatsapp || defaultRepairPage.offlineWhatsapp,
+        trackTitle: c.trackTitle || defaultRepairPage.trackTitle,
+        trackDescription: c.trackDescription || defaultRepairPage.trackDescription,
+        trackLink: c.trackLink || defaultRepairPage.trackLink,
+        trackButtonLabel: c.trackButtonLabel || defaultRepairPage.trackButtonLabel,
+      });
+    }
+  }, [data]);
+
+  const updateField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
+
+  const updateArrayItem = (key, idx, field, value) => {
+    setForm((prev) => {
+      const arr = prev[key].map((item, i) => i === idx ? { ...item, [field]: value } : item);
+      return { ...prev, [key]: arr };
+    });
+  };
+
+  const addArrayItem = (key, template) => {
+    setForm((prev) => ({ ...prev, [key]: [...prev[key], { ...template }] }));
+  };
+
+  const removeArrayItem = (key, idx) => {
+    setForm((prev) => ({ ...prev, [key]: prev[key].filter((_, i) => i !== idx) }));
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    saveMutation.mutate(form);
+  };
+
+  const tabs = [
+    { key: 'hero', label: 'Hero' },
+    { key: 'services', label: 'Services' },
+    { key: 'deviceTypes', label: 'Device Types' },
+    { key: 'timeSlots', label: 'Time Slots' },
+    { key: 'offline', label: 'Offline CTA' },
+    { key: 'track', label: 'Track CTA' },
+  ];
+
+  return (
+    <div className="p-6 md:p-8">
+      <div className="mb-6">
+        <h1 className="font-display text-2xl font-bold text-text-primary">Repair Page</h1>
+        <p className="text-sm text-text-secondary mt-0.5">Manage all content on the Repair Services page.</p>
+      </div>
+
+      <div className="flex gap-1 mb-6 flex-wrap">
+        {tabs.map((t) => (
+          <button key={t.key} onClick={() => setActiveTab(t.key)} className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === t.key ? 'bg-accent text-white' : 'bg-surface text-text-secondary border border-border hover:border-accent'}`}>{t.label}</button>
+        ))}
+      </div>
+
+      <div className="bg-surface rounded-xl border border-border shadow-sm max-w-2xl">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {activeTab === 'hero' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Badge Text</label>
+                <input value={form.heroBadge} onChange={(e) => updateField('heroBadge', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Title</label>
+                <textarea value={form.heroTitle} onChange={(e) => updateField('heroTitle', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                <p className="text-xs text-text-secondary mt-1">Use &lt;br /&gt; for line breaks.</p>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Description</label>
+                <textarea value={form.heroDescription} onChange={(e) => updateField('heroDescription', e.target.value)} rows={3} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'services' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Section Title</label>
+                <input value={form.servicesTitle} onChange={(e) => updateField('servicesTitle', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Section Description</label>
+                <input value={form.servicesDescription} onChange={(e) => updateField('servicesDescription', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'deviceTypes' && (
+            <div className="space-y-3">
+              <p className="text-xs text-text-secondary">Device types shown in the filter and booking form.</p>
+              {form.deviceTypes.map((d, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={d.label || d.value || d} onChange={(e) => { updateArrayItem('deviceTypes', idx, 'label', e.target.value); updateArrayItem('deviceTypes', idx, 'value', e.target.value); }} placeholder="Device type" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('deviceTypes', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('deviceTypes', { value: '', label: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Device Type</button>
+            </div>
+          )}
+
+          {activeTab === 'timeSlots' && (
+            <div className="space-y-3">
+              <p className="text-xs text-text-secondary">Time slots shown in the booking form.</p>
+              {form.timeSlots.map((s, idx) => (
+                <div key={idx} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-bg/40">
+                  <input value={s.value} onChange={(e) => updateArrayItem('timeSlots', idx, 'value', e.target.value)} placeholder="morning" className="w-28 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <input value={s.label} onChange={(e) => updateArrayItem('timeSlots', idx, 'label', e.target.value)} placeholder="Morning (10AM–12PM)" className="flex-1 px-3 py-1.5 rounded-lg border border-border text-sm bg-surface focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                  <button type="button" onClick={() => removeArrayItem('timeSlots', idx)} className="text-red-500 hover:text-red-700 p-1"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                </div>
+              ))}
+              <button type="button" onClick={() => addArrayItem('timeSlots', { value: '', label: '' })} className="text-xs text-accent font-medium hover:underline">+ Add Time Slot</button>
+            </div>
+          )}
+
+          {activeTab === 'offline' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Section Title</label>
+                <input value={form.offlineTitle} onChange={(e) => updateField('offlineTitle', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Description</label>
+                <textarea value={form.offlineDescription} onChange={(e) => updateField('offlineDescription', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Phone Number</label>
+                  <input value={form.offlinePhone} onChange={(e) => updateField('offlinePhone', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">WhatsApp Number</label>
+                  <input value={form.offlineWhatsapp} onChange={(e) => updateField('offlineWhatsapp', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'track' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Section Title</label>
+                <input value={form.trackTitle} onChange={(e) => updateField('trackTitle', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-text-primary mb-1.5">Description</label>
+                <textarea value={form.trackDescription} onChange={(e) => updateField('trackDescription', e.target.value)} rows={2} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Button Label</label>
+                  <input value={form.trackButtonLabel} onChange={(e) => updateField('trackButtonLabel', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-text-primary mb-1.5">Button Link</label>
+                  <input value={form.trackLink} onChange={(e) => updateField('trackLink', e.target.value)} className="w-full px-3.5 py-2.5 rounded-lg border border-border text-sm focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2 border-t border-border">
+            <button type="submit" className="btn-primary text-sm" disabled={saveMutation.isPending}>
+              {saveMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 function AdminAboutInfo() {
   const queryClient = useQueryClient();
   const { data } = useAboutInfo();
@@ -2077,6 +2307,7 @@ export default function Admin() {
           <Route path="hero-slides" element={<AdminHeroSlides />} />
           <Route path="contact-info" element={<AdminContactInfo />} />
           <Route path="about-info" element={<AdminAboutInfo />} />
+          <Route path="repair-page" element={<AdminRepairPageSettings />} />
         </Routes>
       </div>
     </div>
